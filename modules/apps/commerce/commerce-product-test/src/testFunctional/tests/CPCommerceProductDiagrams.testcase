@@ -57,16 +57,24 @@ definition {
 			locator1 = "CommerceEntry#VERIFY_IMAGE");
 
 		AssertElementPresent(
-			key_color = "#ffffff",
+			key_color = "transparent",
 			locator1 = "CommerceEntry#VERIFY_PIN");
+
+		AssertElementPresent(
+			key_strokeColor = "#ffa500",
+			locator1 = "CommerceEntry#VERIFY_PIN_COLOR_STROKE");
 
 		Refresh();
 
 		Click(locator1 = "CommerceEntry#DIAGRAM_ADD_BUTTON");
 
 		AssertElementPresent(
-			key_color = "#ffffff",
+			key_color = "transparent",
 			locator1 = "CommerceEntry#VERIFY_PIN");
+
+		AssertElementPresent(
+			key_strokeColor = "#0B5FFF",
+			locator1 = "CommerceEntry#VERIFY_PIN_COLOR_STROKE");
 	}
 
 	@description = "This is a test for COMMERCE-7019. AddDiagramProduct"
