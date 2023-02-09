@@ -50,6 +50,20 @@ definition {
 		return "${compareDatesResult}";
 	}
 
+	macro compareListSizes {
+		var sizeList1 = ListUtil.size("${sizeList1}");
+		var sizeList2 = ListUtil.size("${sizeList2}");
+
+		if ("${sizeList1}" != "${sizeList2}") {
+			fail("The two lists contains different sizes");
+		}
+		else {
+			var size = "${sizeList1}";
+		}
+
+		return "${size}";
+	}
+
 	macro convertStringToKey {
 		var string = StringUtil.lowerCase("${string}");
 
