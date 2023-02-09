@@ -2882,4 +2882,1095 @@ definition {
 		}
 	}
 
+	@description = ""
+	@priority = ""
+	test CanBuyerPurchaseNoShippableProduct {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		task ("Given a Buyer account is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("And on Flat Rate, View permission is removed for User and Guest") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("And for ABS Sensor the shippable toggle is disabled") {
+			CommerceProducts.openProductsAdmin();
+
+			AppBuilderAdmin.searchByItem(itemName = "ABS Sensor");
+
+			CommerceNavigator.gotoEntry(entryName = "ABS Sensor");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Configuration");
+
+			Uncheck.uncheckToggleSwitch(
+				key_toggleSwitchLabel = "Shippable",
+				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
+
+			Button.clickPublish();
+		}
+
+		task ("When the buyer logs in and start the checkout") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			CommerceAcceleratorsInitializer.changeProductsSorting(sortingType = "Name Ascending");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "ABS Sensor",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "ABS Sensor",
+				productQuantity = "1",
+				productUnitPrice = "50");
+		} 
+
+		task ("Then the checkout is completed with success"){
+			AssertTextEquals(
+				locator1 = "CommerceAccelerators#CHECKOUT_SUCCESS_MESSAGE",
+				value1 = "Success! Your order has been processed.");
+		}
+	}
+
+	@description = ""
+	@priority = ""
+	test CanBuyerCompleteCheckoutWithViewPermissionOnShippingMethod1 {
+		property custom.properties = "jsonws.web.service.paths.excludes=${line.separator}company.security.strangers.verify=false";
+		property portal.acceptance = "false";
+
+		/*task ("Given a Buyer account is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}*/
+
+		task ("And on Flat Rate, View permission is removed for User and Guest") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("And the VIEW permission is given to the role User by editing directly the role") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.commerce.model.CommerceShippingMethod", 
+				roleTitle = "User");
+		}
+
+		task ("When the buyer logs in and start the checkout") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "ABS Sensor",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "ABS Sensor",
+				productQuantity = "1",
+				productUnitPrice = "50",
+				shippingMethod = "Standard");
+		}
+
+		task ("Then the checkout is completed with success"){
+			AssertTextEquals(
+				locator1 = "CommerceAccelerators#CHECKOUT_SUCCESS_MESSAGE",
+				value1 = "Success! Your order has been processed.");
+		}
+		//---------------------------------------------------------------------------------------------
+	}
+
+	@description = ""
+	@priority = ""
+	test CanBuyerCompleteCheckoutWithViewPermissionOnShippingMethod2 {
+		/*task ("Given a Buyer account is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}*/
+
+		task ("And on Flat Rate, View permission is removed for User and Guest") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("When the buyer logs in and start the checkout") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "ABS Sensor",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "ABS Sensor",
+				productQuantity = "1",
+				productUnitPrice = "50");
+		} 
+
+		task ("Then the checkout is not completed and errors are present"){
+			Alert.viewErrorMessage(errorMessage = "You do not have access to any eligible shipping option. Please contact a system administrator for help in placing your order");
+		}
+	}
+		//---------------------------------------------------------------------------------------------
+
+	@description = ""
+	@priority = ""
+	test CanBuyerCompleteCheckoutWithViewPermissionOnShippingMethod3 {
+
+		/*task ("Given a Buyer account is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}*/
+
+		task ("And on Flat Rate, View permission is removed for User and Guest") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("But if Variable Rate is enabled and configured") {
+			CommerceChannels.editShippingMethod(
+				active = "true",
+				configureShippingOption = "true",
+				shippingMethod = "Variable Rate",
+				shippingOptions = "Standard Option",
+				shippingOptionSettingsFixedPrice = "5",
+				shippingOptionSettingsPriceUnitWeight = "2");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Variable Rate",
+				menuItem = "Permissions");
+
+			SelectFrameTop(value1 = "relative=top");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "true",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "true",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("When the buyer logs in and start the checkout") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "ABS Sensor",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "ABS Sensor",
+				productQuantity = "1",
+				productUnitPrice = "50",
+				shippingMethod = "Standard Option",
+				customDeliveryValue = "7");
+		}
+
+		task ("Then the checkout is completed with success"){
+			AssertTextEquals(
+				locator1 = "CommerceAccelerators#CHECKOUT_SUCCESS_MESSAGE",
+				value1 = "Success! Your order has been processed.");
+		}
+	}
+	//---------------------------------------------------------------------------------------------
+
+	@description = ""
+	@priority = ""
+	test CanBuyerCompleteCheckoutWithViewPermissionOnShippingMethodWithDefault1 {
+
+		/*task ("Given a Buyer account is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}*/
+
+		task ("And on Flat Rate, View permission is removed for User and Guest") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("And the VIEW permission is given to the role User by editing directly the role") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.commerce.model.CommerceShippingMethod", 
+				roleTitle = "User");
+		}
+
+		task ("Flat Rate Standard Delivery is the Default for the Commerce Account") {
+			CommerceJSONShippingMethods._setDefaultAccountShippingOption(
+				accountName = "Commerce Account",
+				channelName = "Minium Portal",
+				shippingMethod = "Flat Rate",
+				shippingOption = "Standard Delivery");
+		}
+
+		task ("When the buyer logs in and start the checkout") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "ABS Sensor",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				defaultShippingMethod = "Standard",
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "ABS Sensor",
+				productQuantity = "1",
+				productUnitPrice = "50",
+				shippingMethod = "Standard");
+		}
+
+		task ("Then the checkout is completed with success"){
+			AssertTextEquals(
+				locator1 = "CommerceAccelerators#CHECKOUT_SUCCESS_MESSAGE",
+				value1 = "Success! Your order has been processed.");
+		}
+
+		task ("But if the VIEW permission is removed by editing directly the role") {
+
+			Permissions.removePermissionViaAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.commerce.model.CommerceShippingMethod",
+				roleTitle = "User");
+
+			CommerceNavigator.gotoMiniumSidebarItem(menuItem = "Catalog");
+		}
+
+		task ("When the buyer logs in and start the checkout") {
+			FrontStore.addInitializerProductToCart(
+				productName = "ABS Sensor",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "ABS Sensor",
+				productQuantity = "1",
+				productUnitPrice = "50");
+		}
+
+		task ("Then the checkout is not completed and errors are presenet"){
+			Alert.viewErrorMessage(errorMessage = "You do not have access to any eligible shipping option. Please contact a system administrator for help in placing your order");
+		}
+	}
+
+	@description = ""
+	@priority = ""
+	test CanBuyerCompleteCheckoutWithViewPermissionOnShippingMethodWithDefault2 {
+		/*task ("Given a Buyer account is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}*/
+
+		task ("And on Flat Rate, View permission is removed for User and Guest") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Permissions");
+
+			CommercePermissions.removePermissionsPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				roleTitles = "Guest,User");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "false",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("But if Variable Rate is enabled and configured") {
+			CommerceChannels.editShippingMethod(
+				active = "true",
+				configureShippingOption = "true",
+				shippingMethod = "Variable Rate",
+				shippingOptions = "Standard Option",
+				shippingOptionSettingsFixedPrice = "5",
+				shippingOptionSettingsPriceUnitWeight = "2");
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Variable Rate",
+				menuItem = "Permissions");
+
+			SelectFrameTop(value1 = "relative=top");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#MODAL_BODY");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "true",
+				roleTitle = "Guest");
+
+			Role.viewPermissionPG(
+				permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+				permissionFlagged = "true",
+				roleTitle = "User");
+
+			IFrame.closeFrame();
+		}
+
+		task ("Flat Rate Standard Delivery is the Default for the Commerce Account") {
+			CommerceJSONShippingMethods._setDefaultAccountShippingOption(
+				accountName = "Commerce Account",
+				channelName = "Minium Portal",
+				shippingMethod = "Flat Rate",
+				shippingOption = "Standard Delivery");
+		}
+
+		task ("When the buyer logs in and start the checkout") {
+			User.logoutPG();
+
+			CommerceLogin.miniumLogin(
+				password = "test",
+				urlAppend = "web/minium",
+				userEmailAddress = "buyer@liferay.com");
+
+			FrontStore.addInitializerProductToCart(
+				productName = "ABS Sensor",
+				productQuantity = "1");
+
+			CommerceCheckout.gotoCheckout();
+
+			CommerceCheckout.initializersCheckout(
+				newAddressAddress = "Test Address",
+				newAddressCity = "Test City",
+				newAddressCountry = "United States",
+				newAddressName = "Address Name",
+				newAddressZipCode = "Test Zip Code",
+				productName = "ABS Sensor",
+				productQuantity = "1",
+				productUnitPrice = "50",
+				shippingMethod = "Standard Option",
+				customDeliveryValue = "7");
+		}
+
+		task ("Then the checkout is completed with success"){
+			AssertTextEquals(
+				locator1 = "CommerceAccelerators#CHECKOUT_SUCCESS_MESSAGE",
+				value1 = "Success! Your order has been processed.");
+		}
+	}
+
+	@description = ""
+	@priority = ""
+	test CanUseEligibilityForShippingMethodWithoutUpdatePermission { 
+
+		var resourceAction = "MANAGE_COMMERCE_CURRENCIES,MANAGE_COMMERCE_SHIPPING_METHOD,VIEW_COMMERCE_ORDER_TYPES,VIEW_COMMERCE_TERM_ENTRY";
+		var resourceName = "com.liferay.commerce.currency,com.liferay.commerce.channel,com.liferay.commerce.order.type,com.liferay.commerce.term";
+
+
+		task ("Given the buyer has permission to view a channel's configuration, to manage for the Shipping Methods, and to view Order Type and Delivery Terms") {
+			CommercePermissions.defineChannelPermissionsViaJSONAPI(
+				roleTitle = "User",
+				update = "true",
+				view = "true");
+
+			CommercePermissions.definePermissionsViaJSONAPI(
+				resourceAction = "${resourceAction}",
+				resourceName = "${resourceName}",
+				roleTitle = "User");
+		}
+
+		task ("And an Order Type and Delivery Term is created") {
+			CommerceJSONOrdersAPI._addOrderType(
+				active = "true",
+				orderTypeDescription = "Test Order Type 1 Description",
+				orderTypeName = "Order Type 1");
+
+			CommerceJSONTermsAndConditionsAPI._addCommerceTermsAndConditions(
+				termsCount = "1",
+				termsType = "Delivery");
+
+			//CommerceEntry.setEntryEligibility(orderTypesEligibility = "Order Type 1");	
+		}
+
+		task ("When the buyer logs in") {
+			User.logoutPG();
+
+			User.firstLoginPG(userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And try to change the eligibility for Flat Rate") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.gotoShippingMethodShippingOptions(shippingMethod = "Flat Rate");
+
+			CommerceNavigator.gotoEntry(entryName = "Standard Delivery");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Click(
+				key_panel = "Details",
+				locator1 = "Panel#PANEL_COLLAPSED");
+
+			CommerceEntry.gotoMenuTab(menuTab = "Eligibility");
+		}
+
+		task ("") {
+			//Verify the if the error is present
+		}
+	}
+
+	@description = ""
+	@priority = ""
+	test CanChangeShippingMethodStatusWithPermission { 
+		task ("Given the buyer has permission to view a channel's configuration, to manage for the Shipping Methods, and to Update the Shipping Methods") {
+
+			var resourceAction = "MANAGE_COMMERCE_CURRENCIES,MANAGE_COMMERCE_SHIPPING_METHOD,UPDATE";
+			var resourceName = "com.liferay.commerce.currency,com.liferay.commerce.channel,com.liferay.commerce.model.CommerceShippingMethod";
+
+			CommercePermissions.defineChannelPermissionsViaJSONAPI(
+				roleTitle = "User",
+				update = "true",
+				view = "true");
+
+			CommercePermissions.definePermissionsViaJSONAPI(
+				resourceAction = "${resourceAction}",
+				resourceName = "${resourceName}",
+				roleTitle = "User");
+		}
+
+		task ("And the admin takes the ownership for the Flat Rate Shipping Method") {
+			CommerceChannels.takeOwnershipForShippingMethod(
+				channelName = "Minium Portal",
+				newLogin = "false",
+				shippingMethod = "Flat Rate");
+		}
+
+		task ("When the buyer logs in") {
+			User.logoutPG();
+
+			User.firstLoginPG(userEmailAddress = "buyer@liferay.com");
+		}
+
+		task("The buyer can open the Flat Rate entry and save") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickTableEntryEditButton(
+				entryName = "Flat Rate",
+				table = "Shipping Methods");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Type(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "Ship for a fixed price new description");
+
+			Button.clickSave();
+
+			Alert.viewSuccessMessage();
+
+			AssertTextEquals(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "Ship for a fixed price new description");
+		}
+
+		task ("But if the MANAGE COMMERCE SHIPPING METHOD permission added is removed") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "MANAGE_COMMERCE_SHIPPING_METHOD",
+				resourceName = "com.liferay.commerce.channel",
+				roleTitle = "User");
+		}
+
+		task ("Then the user will not be able to activate the Shipping Methods") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			AssertElementNotPresent(
+				key_entryName = "Flat Rate",
+				key_table = "Shipping Methods",
+				locator1 = "CommerceEntry#TABLE_ENTRY_EDIT_BUTTON");
+		}
+
+		task ("But if the MANAGE COMMERCE SHIPPING METHOD permission is added again") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "MANAGE_COMMERCE_SHIPPING_METHOD",
+				resourceName = "com.liferay.commerce.channel",
+				roleTitle = "User");
+		}
+
+		task ("And the Update permission is removed") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "UPDATE",
+				resourceName = "com.liferay.commerce.model.CommerceShippingMethod",
+				roleTitle = "User");
+		}
+
+		task ("Then the user will not be able to edit the Shipping Method because it is not possible to save") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickTableEntryEditButton(
+				entryName = "Flat Rate",
+				table = "Shipping Methods");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			Type(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "Ship for a fixed price");
+
+			Button.clickSave();
+
+			Alert.viewErrorMessage(errorMessage = "You do not have the required permissions.");
+
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceEntry.clickTableEntryEditButton(
+				entryName = "Flat Rate",
+				table = "Shipping Methods");
+
+			SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+			AssertTextEquals(
+				locator1 = "TextInput#DESCRIPTION",
+				value1 = "Ship for a fixed price new description");
+		}
+	}
+
+	@description = ""
+	@priority = ""
+	test CanUserDeleteOnShippingMethodWithPermissions { 
+		task ("Given the buyer has permission to view a channel's configuration, to manage for the Shipping Methods, and to Update the Shipping Methods") {
+
+			var resourceAction = "MANAGE_COMMERCE_CURRENCIES,MANAGE_COMMERCE_SHIPPING_METHOD,DELETE";
+			var resourceName = "com.liferay.commerce.currency,com.liferay.commerce.channel,com.liferay.commerce.model.CommerceShippingMethod";
+
+			CommercePermissions.defineChannelPermissionsViaJSONAPI(
+				roleTitle = "User",
+				update = "true",
+				view = "true");
+
+			CommercePermissions.definePermissionsViaJSONAPI(
+				resourceAction = "${resourceAction}",
+				resourceName = "${resourceName}",
+				roleTitle = "User");
+		}
+
+		task ("And the admin takes the ownership for the Flat Rate Shipping Method") {
+			CommerceChannels.takeOwnershipForShippingMethod(
+				channelName = "Minium Portal",
+				newLogin = "false",
+				shippingMethod = "Flat Rate");
+		}
+
+		task ("And a new Shipping Option is added for Flat Rate") {
+			CommerceChannels.gotoShippingMethodShippingOptions(shippingMethod = "Flat Rate");
+
+			CommerceChannels.addShippingOption(
+				key = "test-shipping-option",
+				name = "Test Shipping Option");
+		}
+
+		task ("When the buyer logs in") {
+			User.logoutPG();
+
+			User.firstLoginPG(userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And try to delete the new shipping option for Flat Rate") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.gotoShippingMethodShippingOptions(shippingMethod = "Flat Rate");
+		}
+
+		task ("When the Sales Manager goes into the Minium Portal channel and deletes Test Shipping Option inside Flat Rate") {
+			Click(
+				key_value = "Test Shipping Option",
+				locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Delete");
+
+			Alert.viewSuccessMessage();
+		}
+
+		task ("But if the Delete permission is removed") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "DELETE",
+				resourceName = "com.liferay.commerce.model.CommerceShippingMethod",
+				roleTitle = "User");
+		}
+
+		task ("the user will not be able to delete the Shipping Options") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			CommerceChannels.gotoShippingMethodShippingOptions(shippingMethod = "Flat Rate");
+
+			AssertElementNotPresent(
+				key_value = "Expedited Delivery",
+				locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+			AssertElementPresent(
+				key_entry = "Edit",
+				locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
+		}
+	}
+
+	@description = ""
+	@priority = ""
+	test CanUserViewOnShippingMethodWithPermissions { 
+		task ("Given the buyer has permission to view a channel's configuration, to manage for the Shipping Methods") {
+
+			var resourceAction = "MANAGE_COMMERCE_CURRENCIES,MANAGE_COMMERCE_SHIPPING_METHOD";
+			var resourceName = "com.liferay.commerce.currency,com.liferay.commerce.channel,com.liferay.commerce.model.CommerceShippingMethod";
+
+			CommercePermissions.defineChannelPermissionsViaJSONAPI(
+				roleTitle = "User",
+				update = "true",
+				view = "true");
+
+			CommercePermissions.definePermissionsViaJSONAPI(
+				resourceAction = "${resourceAction}",
+				resourceName = "${resourceName}",
+				roleTitle = "User");
+		}
+
+		task ("And the admin takes the ownership for all Shipping Methods") {
+			for (var entryName : list "Flat Rate,Variable Rate") { 
+				CommerceChannels.takeOwnershipForShippingMethod(
+					channelName = "Minium Portal",
+					newLogin = "false",
+					active = "true",
+					shippingMethod = "${entryName}");
+			}	
+		}
+
+		task ("And the VIEW permission is disabled for the role 'User' and 'Guest' inside the channel for all the Shipping Methods") {
+			for (var entryName : list "Flat Rate,Variable Rate") {
+				CommerceEntry.clickEntryDropdownMenuItem(
+					entryName = "${entryName}",
+					menuItem = "Permissions");
+
+				CommercePermissions.removePermissionsPG(
+					permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+					roleTitles = "Guest,User");
+
+				Role.viewPermissionPG(
+					permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+					permissionFlagged = "false",
+					roleTitle = "Guest");
+
+				Role.viewPermissionPG(
+					permissionDefinitionKey = "INLINE_PERMISSIONS_VIEW_CHECKBOX",
+					permissionFlagged = "false",
+					roleTitle = "User");
+
+				IFrame.closeFrame();
+			}
+		}
+
+		task ("And add the View the Shipping Methods") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.commerce.model.CommerceShippingMethod",
+				roleTitle = "User");
+		}
+
+		task ("When the buyer logs in") {
+			User.logoutPG();
+
+			User.firstLoginPG(userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("And try to delete the new shipping option for Flat Rate") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var entryName : list "Flat Rate,Variable Rate,FedEx") { 
+				AssertElementPresent(
+					key_entry = "${entryName}",
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
+			}
+		}
+
+		task ("But if the View permission is removed") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "VIEW",
+				resourceName = "com.liferay.commerce.model.CommerceShippingMethod",
+				roleTitle = "User");
+		}
+
+		task ("Only FedEx shipping method is visible") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			AssertElementPresent(
+				key_entry = "FedEx",
+				locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
+
+			for (var entryName : list "Flat Rate,Variable Rate") { 
+				AssertElementNotPresent(
+					key_entry = "${entryName}",
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
+			}
+		}
+	}
+
+	@description = ""
+	@priority = ""
+	test CanUserUsePermissionIntoTheChannel { 
+
+		task ("Given a Buyer account is created") {
+			CommerceEntry.addAccountEntryUser(
+				accountName = "Commerce Account",
+				accountType = "Business",
+				agreeToTermsAndAnswerReminderQuery = "true",
+				createNewAccount = "true",
+				requireReset = "false",
+				userEmailAddress = "buyer@liferay.com",
+				userFirstName = "Buyer",
+				userLastName = "User",
+				userRole = "Buyer",
+				userScreenName = "buyeruser",
+				userSiteMembership = "Minium");
+		}
+
+		task ("Given the buyer has permission to view a channel's configuration, and to manage the permissions for the Shipping Methods") {
+
+			var resourceAction = "MANAGE_COMMERCE_CURRENCIES,MANAGE_COMMERCE_SHIPPING_METHOD,PERMISSION";
+			var resourceName = "com.liferay.commerce.currency,com.liferay.commerce.channel,com.liferay.commerce.model.CommerceShippingMethod";
+
+			CommercePermissions.defineChannelPermissionsViaJSONAPI(
+				roleTitle = "User",
+				update = "true",
+				view = "true");
+
+			CommercePermissions.definePermissionsViaJSONAPI(
+				resourceAction = "${resourceAction}",
+				resourceName = "${resourceName}",
+				roleTitle = "User");
+		}
+
+		task ("And the admin takes the ownership for the Flat Rate Shipping Method") {
+			CommerceChannels.takeOwnershipForShippingMethod(
+				channelName = "Minium Portal",
+				newLogin = "false",
+				shippingMethod = "Flat Rate");
+		}
+
+		task ("When the buyer logs in") {
+			User.logoutPG();
+
+			User.firstLoginPG(userEmailAddress = "buyer@liferay.com");
+		}
+
+		task ("Then the buyer can see only the ellipsis for Flat Rate and only the edit for the other shipping methods") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			AssertElementPresent(
+				key_value = "Flat Rate",
+				locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+			for (var entryName : list "FedEx,Variable Rate") { 
+				AssertElementNotPresent(
+					key_value = "${entryName}",
+					locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+				AssertElemenPresent(
+					key_entryName = "${entryName}",
+					key_table = "Shipping Methods",
+					locator1 = "CommerceEntry#TABLE_ENTRY_EDIT_BUTTON");
+			}
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Edit");
+
+			Click(locator1 = "Icon#CLOSE");
+
+			SelectFrame.selectFrameTop();
+
+			CommerceEntry.clickEntryDropdownMenuItem(
+				entryName = "Flat Rate",
+				menuItem = "Permissions");
+		}
+
+		task ("But if the MANAGE COMMERCE SHIPPING METHOD permission added is removed") {
+			Permissions.removePermissionViaAPI(
+				resourceAction = "MANAGE_COMMERCE_SHIPPING_METHOD",
+				resourceName = "com.liferay.commerce.channel",
+				roleTitle = "User");
+		}
+		
+		task ("Then the buyer can see only the 'Permssions' button for Flat Rate") {
+			CommerceChannels.openChannelsAdmin();
+
+			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
+
+			for (var entryName : list "FedEx,Variable Rate") { 
+				AssertElementNotPresent(
+					key_value = "${entryName}",
+					locator1 = "CommerceEntry#BODY_VERTICAL_ELLIPSIS");
+
+				AssertElementNotPresent(
+					key_entryName = "${entryName}",
+					key_table = "Shipping Methods",
+					locator1 = "CommerceEntry#TABLE_ENTRY_EDIT_BUTTON");
+			}
+
+			Click(
+				key_entryName = "Flat Rate",
+				key_table = "Shipping Methods",
+				locator1 = "CommerceEntry#TABLE_ENTRY_PERMISSIONS_BUTTON");
+		}
+	}
 }
