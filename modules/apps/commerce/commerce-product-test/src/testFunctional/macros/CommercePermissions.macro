@@ -16,6 +16,39 @@ definition {
 		}
 	}
 
+	macro checkPermissionsViaUI {
+		var count = "0";
+
+		Role.openRolesAdmin();
+
+		LexiconEntry.gotoEntry(rowEntry = "${roleTitle}");
+
+		Navigator.gotoNavItem(navItem = "Define Permissions");
+
+		var permissionDefinitionValueList = ListUtil.newListFromString("${permissionDefinitionValue}");
+		var permissionNavigationValueList = ListUtil.newListFromString("${permissionNavigationValue}");
+
+		var size = CommerceUtilities.compareListSizes(
+			sizeList1 = "${permissionDefinitionValueList}",
+			sizeList2 = "${permissionNavigationValueList}");
+
+		while ("${count}" != "${size}") {
+			var permissionDefinitionValueEntries = ListUtil.get("${permissionDefinitionValueList}", "${count}");
+			var permissionNavigationValueEntry = ListUtil.get("${permissionNavigationValueList}", "${count}");
+			var permissionDefinitionValueEntries = StringUtil.replace("${permissionDefinitionValueEntries}", "/", ",");
+
+			for (var permissionDefinitionValueEntry : list "${permissionDefinitionValueEntries}") {
+				Role.viewPermissionCP(
+					permissionDefinitionValue = "${permissionDefinitionValueEntry}",
+					permissionNavigationValue = "${permissionNavigationValueEntry}");
+			}
+
+			var count = ${count} + 1;
+
+			var count = StringUtil.valueOf("${count}");
+		}
+	}
+
 	macro defineCatalogPermissionsViaJSONAPI {
 		if ("${view}" == "true") {
 			Permissions.definePermissionViaJSONAPI(
@@ -131,6 +164,33 @@ definition {
 			var key_roleTitle = StringUtil.lowerCase("${key_roleTitle}");
 
 			AssertChecked.assertCheckedNotVisible(locator1 = "Permissions#${permissionDefinitionKey}");
+		}
+	}
+
+	macro definePermissionsViaJSONAPI {
+		var count = "0";
+		var resourceActionList = ListUtil.newListFromString("${resourceAction}");
+		var resourceNameList = ListUtil.newListFromString("${resourceName}");
+
+		var size = CommerceUtilities.compareListSizes(
+			sizeList1 = "${resourceNameList}",
+			sizeList2 = "${resourceActionList}");
+
+		while ("${count}" != "${size}") {
+			var resourceActionEntries = ListUtil.get("${resourceActionList}", "${count}");
+			var resourceNameEntry = ListUtil.get("${resourceNameList}", "${count}");
+			var resourceActionEntries = StringUtil.replace("${resourceActionEntries}", "/", ",");
+
+			for (var resourceActionEntry : list "${resourceActionEntries}") {
+				Permissions.definePermissionViaJSONAPI(
+					resourceAction = "${resourceActionEntry}",
+					resourceName = "${resourceNameEntry}",
+					roleTitle = "${roleTitle}");
+			}
+
+			var count = ${count} + 1;
+
+			var count = StringUtil.valueOf("${count}");
 		}
 	}
 
