@@ -717,4 +717,42 @@ definition {
 		Button.clickSave();
 	}
 
+	macro takeOwnershipForShippingMethod {
+		if ("${newLogin}" == "true") {
+			if (isSet(costumUserEmail)) {
+				var userEmail = "${costumUserEmail}";
+			}
+			else {
+				var userEmail = "test@liferay.com";
+			}
+
+			User.logoutPG();
+
+			User.firstLoginPG(userEmailAddress = "${costumUserEmail}");
+		}
+		
+		CommerceChannels.openChannelsAdmin();
+
+		CommerceNavigator.gotoEntry(entryName = "${channelName}");
+
+		CommerceEntry.clickTableEntryEditButton(
+			entryName = "${shippingMethod}",
+			table = "Shipping Methods");
+
+		SelectFrame.selectFrameNoLoading(locator1 = "CommerceEntry#IFRAME_SIDE_PANEL");
+
+		if (isSet(active)) {
+			if ("${active}" == "true") {
+				Check.checkToggleSwitch(locator1 = "CommerceEntry#ACTIVE_CHECKBOX");
+			}
+		}
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		Click(locator1 = "Icon#CLOSE");
+
+		SelectFrame.selectFrameTop();
+	}
+
 }
