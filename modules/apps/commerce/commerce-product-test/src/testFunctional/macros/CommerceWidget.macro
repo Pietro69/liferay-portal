@@ -284,39 +284,6 @@ definition {
 				key_button = "add",
 				locator1 = "CommerceWidget#PRODUCT_PUBLISHER_ADD_REMOVE_FILTER_BUTTON");
 
-			Click(
-				key_button = "Select",
-				locator1 = "CommerceWidget#PRODUCT_PUBLISHER_FILTER_ADD_SELECT_BUTTON");
-
-			SelectFrameTop();
-
-			SelectFrame.selectFrameNoLoading(
-				key_title = "Tags",
-				locator1 = "IFrame#MODAL_ANY");
-
-			Click(
-				key_columnName = "name",
-				key_tableEntry = ${tag},
-				locator1 = "LexiconTable#TABLE_ENTRY_INFO_CHECKBOX");
-
-			SelectFrameTop();
-
-			Button.click(button = "Done");
-
-			SelectFrameTop();
-
-			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#CONFIGURATION");
-
-			Click(
-				key_entry = "Filter",
-				locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
-
-			Button.click(button = "Save");
-
-			Alert.viewSuccessMessage();
-
-			IFrame.closeFrame();
-
 			for (var productName : list ${addFilterResultsList}) {
 				AssertElementPresent(
 					key_productName = ${productName},
@@ -325,36 +292,210 @@ definition {
 		}
 
 		if (isSet(deleteFilter) && (${deleteFilter} == "true")) {
-			Portlet.gotoPortletOptions(
-				portletName = ${portletName},
-				portletOption = "Configuration");
-
-			WaitForLiferayEvent.initializeLiferayEventLog();
-
-			SelectFrameTop();
-
-			SelectFrame.selectFrameNoLoading(locator1 = "IFrame#CONFIGURATION");
-
-			Click(
-				key_entry = "Filter",
-				locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
-
-			Click.mouseOverClick(
-				key_button = "delete",
-				locator1 = "CommerceWidget#PRODUCT_PUBLISHER_ADD_REMOVE_FILTER_BUTTON");
-
-			Button.click(button = "Save");
-
-			Alert.viewSuccessMessage();
-
-			IFrame.closeFrame();
-
-			for (var productName : list ${deleteFilterResultsList}) {
-				AssertElementPresent(
-					key_productName = ${productName},
-					locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
-			}
+			
 		}
 	}
 
+	macro updateProductPublisherConfiguration2 {
+		Portlet.gotoPortletOptions(
+			portletName = ${portletName},
+			portletOption = "Configuration");
+
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		SelectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#CONFIGURATION");
+
+		if(isSet(productSelection)) {
+			var key_Content = ${productSelection}
+
+			Navigator.gotoNavTab(navTab = "Product Selection");
+
+			AssertChecked(
+				locator1 = "Radio#ANY",
+				radioLabel = ${productSelection});
+
+			if (${productSelection} == "Dynamic") {
+				AssertElementPresent(
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME",
+					key_entry = "Filter");
+
+				if (isSet(filterType)) {
+					CommerceWidget.productPublisherAddFilter(
+						
+					);
+				}
+					
+			}
+			else if  (${productSelection} == "Manual") {
+				AssertElementPresent(
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME",
+					key_entry = "Product Entries");
+			}
+			else if  (${productSelection} == "Data Source") {
+				AssertElementPresent(
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME",
+					key_entry = "Data Source");
+			}
+
+		}
+
+		if (isSet(renderSelection)) {  	
+			var key_Content = ${renderSelection}
+
+			Navigator.gotoNavTab(navTab = "Render Selection");
+
+			AssertChecked(
+				locator1 = "Radio#ANY",
+				radioLabel = ${renderSelection});
+
+			if (${renderSelection} == "Use Application Display Template") {
+				AssertElementPresent(
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME",
+					key_entry = "Display Template");
+			}
+			else if  (${renderSelection} == "Use Custom Renderer") {
+				AssertElementPresent(
+					locator1 = "CommerceNavigation#ANY_ENTRY_NAME",
+					key_entry = "Product List Renderer"); 
+			}
+		}
+		
+		if (isSet(itemsPerPage)) {
+			Navigator.gotoNavTab(navTab = "Pagination");
+
+			Type(
+				key_text = "Number of Items to Display",
+				locator1 = "TextInput#ANY",
+				value1 = ${itemsPerPage});
+		}
+		
+	}
+
+	macro productPublisherAddFilter {
+
+		CommerceWidget.expandField(accordionTitle = "filter");
+
+		Click(
+			key_button = "add",
+			locator1 = "CommerceWidget#PRODUCT_PUBLISHER_ADD_REMOVE_FILTER_BUTTON");
+
+		if (isSet(optionQuery)) {
+			Select(
+				key_title = "Query Contains",
+				locator1 = "CalendarLookAndFeelConfiguration#SELECT_BORDER_WIDTH_COLUMN",
+				value1 = ${optionQuery});
+		}
+		if (isSet(optionAndOperator)) {
+			Select(
+				key_title = "And Operator",
+				locator1 = "CalendarLookAndFeelConfiguration#SELECT_BORDER_WIDTH_COLUMN",
+				value1 = ${optionAndOperator});
+		}
+		if (isSet(filterType)) {
+			Select(
+				key_fieldName = "queryName0",
+				locator1 = "PRMMDFRequest#SELECT",
+				value1 = ${filterType});
+			
+			Click(
+				key_button = "Select",
+				locator1 = "CommerceWidget#PRODUCT_PUBLISHER_FILTER_ADD_SELECT_BUTTON");
+
+			SelectFrameTop();
+
+			CommerceWidget.setFilterItems(
+				filterTitle = ${filterType},
+				categories = ${categories},
+				tags = ${tags});
+		}
+
+		Button.click(button = "Save");
+
+		Alert.viewSuccessMessage();
+
+		IFrame.closeFrame();	
+	}
+
+	macro expandField {
+		if (IsElementPresent(key_accordionTitle = ${accordionTitle}, locator1 = "CommerceEntry#ACCORDION_COLLAPSED")) {
+			Click(
+				key_accordionTitle = ${accordionTitle},
+				locator1 = "CommerceEntry#ACCORDION_COLLAPSED");
+		}
+	}
+
+	macro setFilterItems {
+		SelectFrame.selectFrameNoLoading(
+			key_title = ${filterTitle},
+			locator1 = "IFrame#MODAL_ANY");
+
+		if (${filterTitle} == "Tags") {
+
+			for (var tag : list ${tags}) {
+				Click(
+					key_columnName = "name",
+					key_tableEntry = ${tag},
+					locator1 = "LexiconTable#TABLE_ENTRY_INFO_CHECKBOX");
+			}
+
+			SelectFrameTop();
+
+			Button.click(button = "Done");
+		}
+		else if (${filterTitle} == "Categories") { 
+			for (var category : list ${categories}) {
+				Click(
+					key_nodeName = ${key_card},
+					locator1 = "Treeview#NODE_ITEM");
+			}
+
+			SelectFrameTop();
+
+			Button.click(button = "Add");
+		}
+
+		SelectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#CONFIGURATION");
+	}
+
+	macro deleteFilterEntry {
+		Portlet.gotoPortletOptions(
+			portletName = ${portletName},
+			portletOption = "Configuration");
+
+		WaitForLiferayEvent.initializeLiferayEventLog();
+
+		SelectFrameTop();
+
+		SelectFrame.selectFrameNoLoading(locator1 = "IFrame#CONFIGURATION");
+
+		Navigator.gotoNavTab(navTab = "Product Selection");
+
+		AssertChecked(
+			locator1 = "Radio#ANY",
+			radioLabel = "Dynamic");
+
+		Click(
+			key_entry = "Filter",
+			locator1 = "CommerceNavigation#ANY_ENTRY_NAME");
+
+		Click.mouseOverClick(
+			key_button = "delete",
+			locator1 = "CommerceWidget#PRODUCT_PUBLISHER_ADD_REMOVE_FILTER_BUTTON");
+
+		Button.click(button = "Save");
+
+		Alert.viewSuccessMessage();
+
+		IFrame.closeFrame();
+
+		for (var productName : list ${deleteFilterResultsList}) {
+			AssertElementPresent(
+				key_productName = ${productName},
+				locator1 = "CommerceAccelerators#PRODUCT_CARD_NAME");
+		}
+	}
 }
