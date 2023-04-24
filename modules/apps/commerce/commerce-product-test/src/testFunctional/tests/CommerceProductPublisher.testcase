@@ -7,7 +7,7 @@ definition {
 	property testray.main.component.name = "Shopping Experience";
 
 	setUp {
-		CommerceConfiguration.commerceSetUp(minium = "true");
+		CommerceConfiguration.commerceSetUp();
 	}
 
 	tearDown {
@@ -30,13 +30,19 @@ definition {
 		}
 
 		task ("Then the admin is able to add and remove new rules to the filter") {
-			CommerceWidget.updateProductPublisherConfiguration(
+			/*CommerceWidget.updateProductPublisherConfiguration(
 				addFilter = "true",
 				addFilterResultsList = "Brake Rotors,Premium Brake Pads,Brake Pads,Premium Brake Fluid,Brake Fluid",
 				deleteFilter = "true",
 				deleteFilterResultsList = "U-Joint,Transmission Cooler Line Assembly,Torque Converters,Wheel Seal - Front,Mount",
 				portletName = "Product Publisher",
-				tag = "featured");
+				tag = "featured");*/
+
+			CommerceWidget.updateProductPublisherConfiguration(
+				portletName = "Product Publisher",
+				productSelection = "Dynamic",
+
+			);
 		}
 	}
 
